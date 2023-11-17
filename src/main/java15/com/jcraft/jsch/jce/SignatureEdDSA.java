@@ -113,7 +113,7 @@ abstract class SignatureEdDSA implements com.jcraft.jsch.SignatureEdDSA {
     byte[] tmp;
     Buffer buf = new Buffer(sig);
 
-    String foo = new String(buf.getString(), StandardCharsets.UTF_8);
+    String foo = new String(buf.getString(), Charset.forName("UTF-8"));
     if (foo.equals(getName())) {
       j = buf.getInt();
       i = buf.getOffSet();

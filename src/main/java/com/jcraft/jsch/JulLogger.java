@@ -3,7 +3,7 @@ package com.jcraft.jsch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class JulLogger implements com.jcraft.jsch.Logger {
+public class JulLogger extends com.jcraft.jsch.Logger {
 
   private static final Logger logger = Logger.getLogger(JSch.class.getName());
 

@@ -26,7 +26,7 @@
 
 package com.jcraft.jsch;
 
-public interface Identity {
+public abstract class Identity {
 
   /**
    * Decrypts this identity with the specified pass-phrase.
@@ -34,14 +34,14 @@ public interface Identity {
    * @param passphrase the pass-phrase for this identity.
    * @return <code>true</code> if the decryption is succeeded or this identity is not cyphered.
    */
-  public boolean setPassphrase(byte[] passphrase) throws JSchException;
+  public abstract boolean setPassphrase(byte[] passphrase) throws JSchException;
 
   /**
    * Returns the public-key blob.
    *
    * @return the public-key blob
    */
-  public byte[] getPublicKeyBlob();
+  public abstract byte[] getPublicKeyBlob();
 
   /**
    * Signs on data with this identity, and returns the result.
@@ -56,7 +56,7 @@ public interface Identity {
    * @return the signature
    * @see #getSignature(byte[], String)
    */
-  public byte[] getSignature(byte[] data);
+  public abstract byte[] getSignature(byte[] data);
 
   /**
    * Signs on data with this identity, and returns the result.
@@ -78,7 +78,7 @@ public interface Identity {
    * @since 0.1.57
    * @see #getSignature(byte[])
    */
-  public default byte[] getSignature(byte[] data, String alg) {
+  public byte[] getSignature(byte[] data, String alg) {
     return getSignature(data);
   }
 
@@ -91,7 +91,7 @@ public interface Identity {
    * @see #setPassphrase(byte[])
    */
   @Deprecated
-  public default boolean decrypt() {
+  public boolean decrypt() {
     throw new UnsupportedOperationException("not implemented");
   }
 
@@ -100,7 +100,7 @@ public interface Identity {
    *
    * @return the name of the key algorithm
    */
-  public String getAlgName();
+  public abstract String getAlgName();
 
   /**
    * Returns the name of this identity. It will be useful to identify this object in the
@@ -108,17 +108,17 @@ public interface Identity {
    *
    * @return the name of this identity
    */
-  public String getName();
+  public abstract String getName();
 
   /**
    * Returns <code>true</code> if this identity is cyphered.
    *
    * @return <code>true</code> if this identity is cyphered.
    */
-  public boolean isEncrypted();
+  public abstract boolean isEncrypted();
 
   /**
    * Disposes internally allocated data, like byte array for the private key.
    */
-  public void clear();
+  public abstract void clear();
 }

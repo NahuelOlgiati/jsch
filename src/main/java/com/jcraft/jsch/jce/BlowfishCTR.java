@@ -29,7 +29,7 @@ package com.jcraft.jsch.jce;
 import com.jcraft.jsch.Cipher;
 import javax.crypto.spec.*;
 
-public class BlowfishCTR implements Cipher {
+public class BlowfishCTR extends Cipher {
   private static final int ivsize = 8;
   private static final int bsize = 32;
   private javax.crypto.Cipher cipher;

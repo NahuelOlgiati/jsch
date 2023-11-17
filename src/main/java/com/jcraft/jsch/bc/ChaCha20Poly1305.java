@@ -28,12 +28,11 @@ package com.jcraft.jsch.bc;
 
 import com.jcraft.jsch.Cipher;
 import java.nio.ByteBuffer;
-import javax.crypto.AEADBadTagException;
 import org.bouncycastle.crypto.engines.ChaChaEngine;
 import org.bouncycastle.crypto.macs.Poly1305;
 import org.bouncycastle.crypto.params.*;
 
-public class ChaCha20Poly1305 implements Cipher {
+public class ChaCha20Poly1305 extends Cipher {
   // Actually the block size, not IV size
   private static final int ivsize = 8;
   // Actually the key size, not block size
@@ -118,7 +117,7 @@ public class ChaCha20Poly1305 implements Cipher {
       poly1305.update(foo, s1, len);
       poly1305.doFinal(expected_tag, 0);
       if (!arraysequals(actual_tag, expected_tag)) {
-        throw new AEADBadTagException("Tag mismatch");
+        throw new Exception("Tag mismatch");
       }
     }
 

@@ -31,7 +31,7 @@ import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.macs.HMac;
 import org.bouncycastle.crypto.params.KeyParameter;
 
-abstract class HMAC implements MAC {
+abstract class HMAC extends MAC {
   protected String name;
   protected int bsize;
   protected Digest digest;

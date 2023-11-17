@@ -31,7 +31,7 @@ import java.security.interfaces.*;
 import java.security.spec.*;
 import java.util.Arrays;
 
-public class KeyPairGenEdDSA implements com.jcraft.jsch.KeyPairGenEdDSA {
+public class KeyPairGenEdDSA extends com.jcraft.jsch.KeyPairGenEdDSA {
   byte[] prv; // private
   byte[] pub; // public
   int keylen;

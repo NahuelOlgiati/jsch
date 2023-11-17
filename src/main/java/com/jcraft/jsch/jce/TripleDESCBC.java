@@ -30,7 +30,7 @@ import com.jcraft.jsch.Cipher;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 
-public class TripleDESCBC implements Cipher {
+public class TripleDESCBC extends Cipher {
   private static final int ivsize = 8;
   private static final int bsize = 24;
   private javax.crypto.Cipher cipher;

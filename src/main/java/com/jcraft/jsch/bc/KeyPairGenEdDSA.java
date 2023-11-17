@@ -29,7 +29,7 @@ package com.jcraft.jsch.bc;
 import java.security.*;
 import org.bouncycastle.crypto.params.*;
 
-public class KeyPairGenEdDSA implements com.jcraft.jsch.KeyPairGenEdDSA {
+public class KeyPairGenEdDSA extends com.jcraft.jsch.KeyPairGenEdDSA {
   byte[] prv; // private
   byte[] pub; // public
   int keylen;

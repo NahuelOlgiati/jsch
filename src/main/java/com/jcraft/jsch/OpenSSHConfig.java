@@ -27,19 +27,19 @@
 package com.jcraft.jsch;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * This class implements ConfigRepository interface, and parses OpenSSH's configuration file. The
@@ -75,9 +75,16 @@ import java.util.stream.Stream;
  */
 public class OpenSSHConfig implements ConfigRepository {
 
-  private static final Set<String> keysWithListAdoption =
-      Stream.of("KexAlgorithms", "Ciphers", "HostKeyAlgorithms", "MACs", "PubkeyAcceptedAlgorithms",
-          "PubkeyAcceptedKeyTypes").map(String::toUpperCase).collect(Collectors.toSet());
+	private static final Set<String> keysWithListAdoption = new HashSet<String>();
+
+	static {
+	    keysWithListAdoption.add("KexAlgorithms".toUpperCase());
+	    keysWithListAdoption.add("Ciphers".toUpperCase());
+	    keysWithListAdoption.add("HostKeyAlgorithms".toUpperCase());
+	    keysWithListAdoption.add("MACs".toUpperCase());
+	    keysWithListAdoption.add("PubkeyAcceptedAlgorithms".toUpperCase());
+	    keysWithListAdoption.add("PubkeyAcceptedKeyTypes".toUpperCase());
+	}
 
   /**
    * Parses the given string, and returns an instance of ConfigRepository.
@@ -86,11 +93,28 @@ public class OpenSSHConfig implements ConfigRepository {
    * @return an instanceof OpenSSHConfig
    */
   public static OpenSSHConfig parse(String conf) throws IOException {
-    try (Reader r = new StringReader(conf)) {
-      try (BufferedReader br = new BufferedReader(r)) {
-        return new OpenSSHConfig(br);
-      }
-    }
+	  Reader r = new StringReader(conf);
+	  BufferedReader br = null;
+
+	  try {
+	      br = new BufferedReader(r);
+	      return new OpenSSHConfig(br);
+	  } finally {
+	      if (br != null) {
+	          try {
+	              br.close();
+	          } catch (IOException e) {
+	              // Handle the exception
+	          }
+	      }
+	      if (r != null) {
+	          try {
+	              r.close();
+	          } catch (IOException e) {
+	              // Handle the exception
+	          }
+	      }
+	  }
   }
 
   /**
@@ -100,22 +124,33 @@ public class OpenSSHConfig implements ConfigRepository {
    * @return an instanceof OpenSSHConfig
    */
   public static OpenSSHConfig parseFile(String file) throws IOException {
-    try (BufferedReader br =
-        Files.newBufferedReader(Paths.get(Util.checkTilde(file)), StandardCharsets.UTF_8)) {
-      return new OpenSSHConfig(br);
-    }
+	  BufferedReader br = null;
+	  try {
+	      FileInputStream fis = new FileInputStream(Util.checkTilde(file));
+	      InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
+	      br = new BufferedReader(isr);
+	      return new OpenSSHConfig(br);
+	  } finally {
+	      if (br != null) {
+	          try {
+	              br.close();
+	          } catch (IOException e) {
+	              // Handle the exception
+	          }
+	      }
+	  }
   }
 
   OpenSSHConfig(BufferedReader br) throws IOException {
     _parse(br);
   }
 
-  private final Hashtable<String, Vector<String[]>> config = new Hashtable<>();
-  private final Vector<String> hosts = new Vector<>();
+  private final Hashtable<String, Vector<String[]>> config = new Hashtable<String, Vector<String[]>>();
+  private final Vector<String> hosts = new Vector<String>();
 
   private void _parse(BufferedReader br) throws IOException {
     String host = "";
-    Vector<String[]> kv = new Vector<>();
+    Vector<String[]> kv = new Vector<String[]>();
     String l = null;
 
     while ((l = br.readLine()) != null) {
@@ -134,7 +169,7 @@ public class OpenSSHConfig implements ConfigRepository {
         config.put(host, kv);
         hosts.addElement(host);
         host = key_value[1];
-        kv = new Vector<>();
+        kv = new Vector<String[]>();
       } else {
         kv.addElement(key_value);
       }
@@ -157,7 +192,7 @@ public class OpenSSHConfig implements ConfigRepository {
     return keymap;
   }
 
-  private static final Hashtable<String, String> keymap = new Hashtable<>();
+  private static final Hashtable<String, String> keymap = new Hashtable<String, String>();
   static {
     keymap.put("kex", "KexAlgorithms");
     keymap.put("server_host_key", "HostKeyAlgorithms");
@@ -174,7 +209,7 @@ public class OpenSSHConfig implements ConfigRepository {
   class MyConfig implements Config {
 
     private String host;
-    private Vector<Vector<String[]>> _configs = new Vector<>();
+    private Vector<Vector<String[]>> _configs = new Vector<Vector<String[]>>();
 
     MyConfig(String host) {
       this.host = host;
@@ -240,12 +275,25 @@ public class OpenSSHConfig implements ConfigRepository {
         if (value.startsWith("+")) {
           value = origConfig + "," + value.substring(1).trim();
         } else if (value.startsWith("-")) {
-          List<String> algList =
-              Arrays.stream(Util.split(origConfig, ",")).collect(Collectors.toList());
+        	String[] origConfigArray = Util.split(origConfig, ",");
+        	List<String> algList = new ArrayList<String>();
+
+        	for (String element : origConfigArray) {
+        	    algList.add(element);
+        	}
           for (String alg : Util.split(value.substring(1).trim(), ",")) {
             algList.remove(alg.trim());
           }
-          value = String.join(",", algList);
+          StringBuilder sb = new StringBuilder();
+
+          for (String element : algList) {
+              if (sb.length() > 0) {
+                  sb.append(",");
+              }
+              sb.append(element);
+          }
+
+          value = sb.toString();
         } else if (value.startsWith("^")) {
           value = value.substring(1).trim() + "," + origConfig;
         }
@@ -256,7 +304,7 @@ public class OpenSSHConfig implements ConfigRepository {
 
     private String[] multiFind(String key) {
       key = key.toUpperCase();
-      Vector<String> value = new Vector<>();
+      Vector<String> value = new Vector<String>();
       for (int i = 0; i < _configs.size(); i++) {
         Vector<String[]> v = _configs.elementAt(i);
         for (int j = 0; j < v.size(); j++) {

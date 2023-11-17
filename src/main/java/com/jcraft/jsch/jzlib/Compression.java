@@ -26,13 +26,14 @@
 
 package com.jcraft.jsch.jzlib;
 
-import java.util.function.Supplier;
+import java.io.IOException;
+
 import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.LogMessageProvider;
 import com.jcraft.jsch.Logger;
 import com.jcraft.jsch.Session;
-import java.io.UncheckedIOException;
 
-public class Compression implements com.jcraft.jsch.Compression {
+public class Compression extends com.jcraft.jsch.Compression {
   static private final int BUF_SIZE = 4096;
   private final int buffer_margin = 32 + 20; // AES256 + HMACSHA1
   private Deflater deflater;
@@ -43,12 +44,12 @@ public class Compression implements com.jcraft.jsch.Compression {
 
   public Compression() {}
 
-  private void logMessage(int level, Supplier<String> message) {
+  private void logMessage(int level, LogMessageProvider messageProvider) {
     Logger logger = session == null ? JSch.getLogger() : session.getLogger();
     if (!logger.isEnabled(level)) {
       return;
     }
-    logger.log(level, message.get());
+    logger.log(level, messageProvider.get());
   }
 
   @Override
@@ -71,18 +72,28 @@ public class Compression implements com.jcraft.jsch.Compression {
     init(type, level);
   }
 
-  public void init(int type, int level) throws UncheckedIOException {
+  public void init(int type, int level) {
     if (type == DEFLATER) {
       try {
         deflater = new Deflater(level);
-      } catch (GZIPException e) {
-        throw new UncheckedIOException(e);
+      } catch (final GZIPException e) {
+	    logMessage(Logger.DEBUG, new LogMessageProvider() {
+	        @Override
+	        public String get() {
+	        	return "GZIPException: " + e.getMessage();
+	        }
+	    });
       }
     } else if (type == INFLATER) {
       inflater = new Inflater();
       inflated_buf = new byte[BUF_SIZE];
     }
-    logMessage(Logger.DEBUG, () -> "zlib using " + this.getClass().getCanonicalName());
+    logMessage(Logger.DEBUG, new LogMessageProvider() {
+        @Override
+        public String get() {
+        	return "zlib using " + getClass().getCanonicalName();
+        }
+    });
   }
 
   @Override
@@ -98,7 +109,7 @@ public class Compression implements com.jcraft.jsch.Compression {
       deflater.next_out = tmpbuf;
       deflater.next_out_index = 0;
       deflater.avail_out = BUF_SIZE;
-      int status = deflater.deflate(JZlib.Z_PARTIAL_FLUSH);
+      final int status = deflater.deflate(JZlib.Z_PARTIAL_FLUSH);
       switch (status) {
         case JZlib.Z_OK:
           tmp = BUF_SIZE - deflater.avail_out;
@@ -111,7 +122,12 @@ public class Compression implements com.jcraft.jsch.Compression {
           outputlen += tmp;
           break;
         default:
-          logMessage(Logger.WARN, () -> "compress: deflate returnd " + status);
+        	logMessage(Logger.WARN, new LogMessageProvider() {
+        	    @Override
+        	    public String get() {
+        	        return "compress: deflate returned " + status;
+        	    }
+        	});
       }
     } while (deflater.avail_out == 0);
 
@@ -131,7 +147,7 @@ public class Compression implements com.jcraft.jsch.Compression {
       inflater.next_out = tmpbuf;
       inflater.next_out_index = 0;
       inflater.avail_out = BUF_SIZE;
-      int status = inflater.inflate(JZlib.Z_PARTIAL_FLUSH);
+      final int status = inflater.inflate(JZlib.Z_PARTIAL_FLUSH);
       switch (status) {
         case JZlib.Z_OK:
           if (inflated_buf.length < inflated_end + BUF_SIZE - inflater.avail_out) {
@@ -158,7 +174,12 @@ public class Compression implements com.jcraft.jsch.Compression {
           length[0] = inflated_end;
           return buffer;
         default:
-          logMessage(Logger.WARN, () -> "compress: deflate returnd " + status);
+          logMessage(Logger.WARN, new LogMessageProvider() {
+        	    @Override
+        	    public String get() {
+        	        return "compress: deflate returnd " + status;
+        	    }
+        	});
           return null;
       }
     }

@@ -249,9 +249,19 @@ public abstract class KeyPair {
    */
   public void writePublicKey(String name, String comment)
       throws FileNotFoundException, IOException {
-    try (OutputStream fos = new FileOutputStream(name)) {
-      writePublicKey(fos, comment);
-    }
+	  OutputStream fos = null;
+	  try {
+	      fos = new FileOutputStream(name);
+	      writePublicKey(fos, comment);
+	  } finally {
+	      if (fos != null) {
+	          try {
+	              fos.close();
+	          } catch (IOException e) {
+	              // Handle the exception
+	          }
+	      }
+	  }
   }
 
   /**
@@ -297,9 +307,19 @@ public abstract class KeyPair {
    */
   public void writeSECSHPublicKey(String name, String comment)
       throws FileNotFoundException, IOException {
-    try (OutputStream fos = new FileOutputStream(name)) {
-      writeSECSHPublicKey(fos, comment);
-    }
+	  OutputStream fos = null;
+	  try {
+	      fos = new FileOutputStream(name);
+	      writeSECSHPublicKey(fos, comment);
+	  } finally {
+	      if (fos != null) {
+	          try {
+	              fos.close();
+	          } catch (IOException e) {
+	              // Handle the exception
+	          }
+	      }
+	  }
   }
 
   /**
@@ -321,9 +341,19 @@ public abstract class KeyPair {
    */
   public void writePrivateKey(String name, byte[] passphrase)
       throws FileNotFoundException, IOException {
-    try (OutputStream fos = new FileOutputStream(name)) {
-      writePrivateKey(fos, passphrase);
-    }
+	  OutputStream fos = null;
+	  try {
+	      fos = new FileOutputStream(name);
+	      writePrivateKey(fos, passphrase);
+	  } finally {
+	      if (fos != null) {
+	          try {
+	              fos.close();
+	          } catch (IOException e) {
+	              // Handle the exception
+	          }
+	      }
+	  }    
   }
 
   /**
@@ -1131,12 +1161,15 @@ public abstract class KeyPair {
       }
 
       return kpair;
-    } catch (Exception | NoClassDefFoundError e) {
+    } catch (NoClassDefFoundError e) {
       Util.bzero(data);
-      if (e instanceof JSchException)
-        throw (JSchException) e;
       throw new JSchException(e.toString(), e);
-    }
+    }catch (Exception e) {
+        Util.bzero(data);
+        if (e instanceof JSchException)
+          throw (JSchException) e;
+        throw new JSchException(e.toString(), e);
+      }
   }
 
   static KeyPair loadOpenSSHKeyv1(JSch.InstanceLogger instLogger, byte[] data)
@@ -1183,9 +1216,11 @@ public abstract class KeyPair {
                 Class.forName(JSch.getConfig(cipherName)).asSubclass(Cipher.class);
             kpair.cipher = c.getDeclaredConstructor().newInstance();
             kpair.iv = new byte[kpair.cipher.getIVSize()];
-          } catch (Exception | NoClassDefFoundError e) {
+          } catch (NoClassDefFoundError e) {
             throw new JSchException("cipher " + cipherName + " is not available", e);
-          }
+          } catch (Exception e) {
+              throw new JSchException("cipher " + cipherName + " is not available", e);
+            }
         } else {
           throw new JSchException("cipher " + cipherName + " is not available");
         }
@@ -1199,15 +1234,17 @@ public abstract class KeyPair {
           BCrypt bcrypt = c.getDeclaredConstructor().newInstance();
           bcrypt.init(salt, rounds);
           kpair.kdf = bcrypt;
-        } catch (Exception | NoClassDefFoundError e) {
+        } catch (NoClassDefFoundError e) {
           throw new JSchException("kdf " + kdfName + " is not available", e);
+        } catch (Exception e) {
+            throw new JSchException("kdf " + kdfName + " is not available", e);
         }
       }
 
       return kpair;
     } catch (Exception e) {
       Util.bzero(kpair.data);
-      throw e;
+      throw new JSchException("kdf " + kdfName + " exception", e);
     }
   }
 
@@ -1246,7 +1283,7 @@ public abstract class KeyPair {
     int lines = 0;
 
     Buffer buffer = new Buffer(buf);
-    Map<String, String> v = new HashMap<>();
+    Map<String, String> v = new HashMap<String, String>();
 
     while (true) {
       if (!parseHeader(buffer, v))
@@ -1298,9 +1335,12 @@ public abstract class KeyPair {
                 Class.forName(JSch.getConfig("aes256-cbc")).asSubclass(Cipher.class);
             kpair.cipher = c.getDeclaredConstructor().newInstance();
             kpair.iv = new byte[kpair.cipher.getIVSize()];
-          } catch (Exception | NoClassDefFoundError e) {
+          } catch (NoClassDefFoundError e) {
             throw new JSchException("The cipher 'aes256-cbc' is required, but it is not available.",
                 e);
+          } catch (Exception e) {
+              throw new JSchException("The cipher 'aes256-cbc' is required, but it is not available.",
+                      e);
           }
         } else {
           throw new JSchException("The cipher 'aes256-cbc' is required, but it is not available.");
@@ -1312,9 +1352,11 @@ public abstract class KeyPair {
             HASH sha1 = c.getDeclaredConstructor().newInstance();
             sha1.init();
             kpair.sha1 = sha1;
-          } catch (Exception | NoClassDefFoundError e) {
+          } catch (NoClassDefFoundError e) {
             throw new JSchException("'sha-1' is required, but it is not available.", e);
-          }
+          } catch (Exception e) {
+              throw new JSchException("'sha-1' is required, but it is not available.", e);
+            }
         } else {
           String argonTypeStr = v.get("Key-Derivation");
           String saltStr = v.get("Argon2-Salt");
@@ -1324,17 +1366,13 @@ public abstract class KeyPair {
           }
 
           int argonType;
-          switch (argonTypeStr) {
-            case "Argon2d":
+          if ("Argon2d".equals(argonTypeStr)) {
               argonType = Argon2.ARGON2D;
-              break;
-            case "Argon2i":
+          } else if ("Argon2i".equals(argonTypeStr)) {
               argonType = Argon2.ARGON2I;
-              break;
-            case "Argon2id":
+          } else if ("Argon2id".equals(argonTypeStr)) {
               argonType = Argon2.ARGON2ID;
-              break;
-            default:
+          } else {
               throw new JSchException("Invalid argon2 params.");
           }
 
@@ -1357,8 +1395,10 @@ public abstract class KeyPair {
             kpair.kdf = argon2;
           } catch (NumberFormatException e) {
             throw new JSchException("Invalid argon2 params.", e);
-          } catch (Exception | NoClassDefFoundError e) {
+          } catch (NoClassDefFoundError e) {
             throw new JSchException("'argon2' is required, but it is not available.", e);
+          } catch (Exception e) {
+              throw new JSchException("'argon2' is required, but it is not available.", e);
           }
         }
 
@@ -1374,7 +1414,7 @@ public abstract class KeyPair {
       return kpair;
     } catch (Exception e) {
       Util.bzero(prvkey);
-      throw e;
+      throw new JSchException("Exception privatekey", e);
     } finally {
       Util.bzero(_prvkey);
     }
@@ -1622,7 +1662,7 @@ public abstract class KeyPair {
         return new ASN1[0];
       }
       int index = indexp[0];
-      List<ASN1> values = new ArrayList<>();
+      List<ASN1> values = new ArrayList<ASN1>();
       while (length > 0) {
         index++;
         length--;

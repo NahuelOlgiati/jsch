@@ -42,7 +42,7 @@ public class Logger {
     }
   }
 
-  public static class MyLogger implements com.jcraft.jsch.Logger {
+  public static class MyLogger extends com.jcraft.jsch.Logger {
     static java.util.Map<Integer, String> name = new java.util.HashMap<>();
     static {
       name.put(DEBUG, "DEBUG: ");

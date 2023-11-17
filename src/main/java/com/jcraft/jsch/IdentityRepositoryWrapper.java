@@ -35,7 +35,7 @@ import java.util.Vector;
  */
 class IdentityRepositoryWrapper implements IdentityRepository {
   private IdentityRepository ir;
-  private Vector<Identity> cache = new Vector<>();
+  private Vector<Identity> cache = new Vector<Identity>();
   private boolean keep_in_cache = false;
 
   IdentityRepositoryWrapper(IdentityRepository ir) {
@@ -75,7 +75,7 @@ class IdentityRepositoryWrapper implements IdentityRepository {
 
   @Override
   public Vector<Identity> getIdentities() {
-    Vector<Identity> result = new Vector<>();
+    Vector<Identity> result = new Vector<Identity>();
     for (int i = 0; i < cache.size(); i++) {
       Identity identity = cache.elementAt(i);
       result.add(identity);

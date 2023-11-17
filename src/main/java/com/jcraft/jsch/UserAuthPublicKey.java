@@ -47,9 +47,13 @@ class UserAuthPublicKey extends UserAuth {
       }
 
       String[] not_available_pka = session.getUnavailableSignatures();
-      List<String> not_available_pks = (not_available_pka != null && not_available_pka.length > 0
-          ? Arrays.asList(not_available_pka)
-          : Collections.emptyList());
+      List<String> not_available_pks;
+
+      if (not_available_pka != null && not_available_pka.length > 0) {
+          not_available_pks = new ArrayList<String>(Arrays.asList(not_available_pka));
+      } else {
+          not_available_pks = new ArrayList<String>();
+      }
       if (!not_available_pks.isEmpty()) {
         if (session.getLogger().isEnabled(Logger.DEBUG)) {
           session.getLogger().log(Logger.DEBUG,
@@ -64,8 +68,8 @@ class UserAuthPublicKey extends UserAuth {
 
       String[] server_sig_algs = session.getServerSigAlgs();
       if (server_sig_algs != null && server_sig_algs.length > 0) {
-        List<String> _known = new ArrayList<>();
-        List<String> _unknown = new ArrayList<>();
+        List<String> _known = new ArrayList<String>();
+        List<String> _unknown = new ArrayList<String>();
         for (String pkmethod : pkmethods) {
           boolean add = false;
           for (String server_sig_alg : server_sig_algs) {
@@ -125,8 +129,8 @@ class UserAuthPublicKey extends UserAuth {
     boolean try_other_pkmethods =
         session.getConfig("try_additional_pubkey_algorithms").equals("yes");
 
-    List<String> rsamethods = new ArrayList<>();
-    List<String> nonrsamethods = new ArrayList<>();
+    List<String> rsamethods = new ArrayList<String>();
+    List<String> nonrsamethods = new ArrayList<String>();
     for (String pkmethod : pkmethods) {
       if (pkmethod.equals("ssh-rsa") || pkmethod.equals("rsa-sha2-256")
           || pkmethod.equals("rsa-sha2-512") || pkmethod.equals("ssh-rsa-sha224@ssh.com")
@@ -155,9 +159,9 @@ class UserAuthPublicKey extends UserAuth {
       String _ipkmethod = identity.getAlgName();
       List<String> ipkmethods = null;
       if (_ipkmethod.equals("ssh-rsa")) {
-        ipkmethods = new ArrayList<>(rsamethods);
+        ipkmethods = new ArrayList<String>(rsamethods);
       } else if (nonrsamethods.contains(_ipkmethod)) {
-        ipkmethods = new ArrayList<>(1);
+        ipkmethods = new ArrayList<String>(1);
         ipkmethods.add(_ipkmethod);
       }
       if (ipkmethods == null || ipkmethods.isEmpty()) {
@@ -213,7 +217,7 @@ class UserAuthPublicKey extends UserAuth {
                 if (session.getLogger().isEnabled(Logger.DEBUG)) {
                   session.getLogger().log(Logger.DEBUG, ipkmethod + " preauth success");
                 }
-                pkmethodsuccesses = new ArrayList<>(1);
+                pkmethodsuccesses = new ArrayList<String>(1);
                 pkmethodsuccesses.add(ipkmethod);
                 break loop3;
               } else if (command == SSH_MSG_USERAUTH_FAILURE) {

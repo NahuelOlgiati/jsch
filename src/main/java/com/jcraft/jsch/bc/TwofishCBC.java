@@ -34,7 +34,7 @@ import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
-abstract class TwofishCBC implements Cipher {
+abstract class TwofishCBC extends Cipher {
   private static final int ivsize = 16;
   private BufferedBlockCipher cipher;
 

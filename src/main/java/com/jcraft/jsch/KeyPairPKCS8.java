@@ -227,7 +227,7 @@ class KeyPairPKCS8 extends KeyPair {
           throw new JSchException("failed to parse RSA");
         }
       } else if (Util.array_equals(privateKeyAlgorithmID, dsaEncryption)) {
-        List<byte[]> values = new ArrayList<>(3);
+        List<byte[]> values = new ArrayList<byte[]>(3);
 
         if (contents.length > 1 && contents[1].isSEQUENCE()) {
           contents = contents[1].getContents();

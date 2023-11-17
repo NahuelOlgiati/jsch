@@ -79,9 +79,11 @@ abstract class DHXEC extends KeyExchange {
 
       Q_C = xdh.getQ();
       buf.putString(Q_C);
-    } catch (Exception | NoClassDefFoundError e) {
+    } catch (NoClassDefFoundError e) {
       throw new JSchException(e.toString(), e);
-    }
+    } catch (Exception e) {
+        throw new JSchException(e.toString(), e);
+      }
 
     if (V_S == null) { // This is a really ugly hack for Session.checkKexes ;-(
       return;

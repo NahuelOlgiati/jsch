@@ -27,7 +27,7 @@
 package com.jcraft.jsch;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.Socket;
 import java.util.Hashtable;
 
 class ChannelX11 extends Channel {
@@ -45,8 +45,8 @@ class ChannelX11 extends Channel {
   static byte[] cookie = null;
   private static byte[] cookie_hex = null;
 
-  private static Hashtable<Session, byte[]> faked_cookie_pool = new Hashtable<>();
-  private static Hashtable<Session, byte[]> faked_cookie_hex_pool = new Hashtable<>();
+  private static Hashtable<Session, byte[]> faked_cookie_pool = new Hashtable<Session, byte[]>();
+  private static Hashtable<Session, byte[]> faked_cookie_hex_pool = new Hashtable<Session, byte[]>();
 
   private static byte[] table = {0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x61,
       0x62, 0x63, 0x64, 0x65, 0x66};

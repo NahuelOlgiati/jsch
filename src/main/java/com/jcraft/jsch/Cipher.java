@@ -26,35 +26,35 @@
 
 package com.jcraft.jsch;
 
-public interface Cipher {
-  static int ENCRYPT_MODE = 0;
-  static int DECRYPT_MODE = 1;
+public abstract class Cipher {
+  public static int ENCRYPT_MODE = 0;
+  public static int DECRYPT_MODE = 1;
 
-  int getIVSize();
+  public abstract int getIVSize();
 
-  int getBlockSize();
+  public abstract int getBlockSize();
 
-  default int getTagSize() {
+  public int getTagSize() {
     return 0;
   }
 
-  void init(int mode, byte[] key, byte[] iv) throws Exception;
+  public abstract void init(int mode, byte[] key, byte[] iv) throws Exception;
 
-  default void update(int foo) throws Exception {}
+  public void update(int foo) throws Exception {}
 
-  void update(byte[] foo, int s1, int len, byte[] bar, int s2) throws Exception;
+  public abstract void update(byte[] foo, int s1, int len, byte[] bar, int s2) throws Exception;
 
-  default void updateAAD(byte[] foo, int s1, int len) throws Exception {}
+  public void updateAAD(byte[] foo, int s1, int len) throws Exception {}
 
-  default void doFinal(byte[] foo, int s1, int len, byte[] bar, int s2) throws Exception {}
+  public void doFinal(byte[] foo, int s1, int len, byte[] bar, int s2) throws Exception {}
 
-  boolean isCBC();
+  public abstract boolean isCBC();
 
-  default boolean isAEAD() {
+  public boolean isAEAD() {
     return false;
   }
 
-  default boolean isChaCha20() {
+  public boolean isChaCha20() {
     return false;
   }
 }

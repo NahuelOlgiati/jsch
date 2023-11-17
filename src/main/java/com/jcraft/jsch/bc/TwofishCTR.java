@@ -33,7 +33,7 @@ import org.bouncycastle.crypto.modes.SICBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
-abstract class TwofishCTR implements Cipher {
+abstract class TwofishCTR extends Cipher {
   private static final int ivsize = 16;
   private CTRModeCipher cipher;
 

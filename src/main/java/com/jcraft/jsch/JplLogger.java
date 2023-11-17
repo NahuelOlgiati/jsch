@@ -1,6 +1,6 @@
 package com.jcraft.jsch;
 
-public class JplLogger implements com.jcraft.jsch.Logger {
+public class JplLogger extends com.jcraft.jsch.Logger {
 
   public JplLogger() {
     throw new UnsupportedOperationException("JplLogger requires Java9+.");

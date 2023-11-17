@@ -174,9 +174,11 @@ public abstract class KeyExchange {
       if (_c2sAEAD) {
         guess[PROPOSAL_MAC_ALGS_CTOS] = null;
       }
-    } catch (Exception | NoClassDefFoundError e) {
+    } catch (NoClassDefFoundError e) {
       throw new JSchException(e.toString(), e);
-    }
+    } catch (Exception e) {
+        throw new JSchException(e.toString(), e);
+      }
 
     if (session.getLogger().isEnabled(Logger.INFO)) {
       session.getLogger().log(Logger.INFO, "kex: algorithm: " + guess[PROPOSAL_KEX_ALGS]);
@@ -401,9 +403,12 @@ public abstract class KeyExchange {
             Class.forName(session.getConfig(alg)).asSubclass(SignatureEdDSA.class);
         sig = c.getDeclaredConstructor().newInstance();
         sig.init();
-      } catch (Exception | NoClassDefFoundError e) {
+      } catch (NoClassDefFoundError e) {
         throw new JSchException(e.toString(), e);
-      }
+      } catch (Exception e) {
+          throw new JSchException(e.toString(), e);
+        }
+      
 
       sig.setPubKey(tmp);
 

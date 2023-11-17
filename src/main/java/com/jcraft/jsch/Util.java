@@ -32,7 +32,6 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Vector;
 
 class Util {
@@ -126,7 +125,7 @@ class Util {
     if (foo == null)
       return null;
     byte[] buf = Util.str2byte(foo);
-    Vector<String> bar = new Vector<>();
+    Vector<String> bar = new Vector<String>();
     int start = 0;
     int index;
     while (true) {
@@ -384,20 +383,24 @@ class Util {
     final Socket[] sockp = new Socket[1];
     final Exception[] ee = new Exception[1];
     String message = "";
-    Thread tmp = new Thread(() -> {
-      sockp[0] = null;
-      try {
-        sockp[0] = new Socket(_host, _port);
-      } catch (Exception e) {
-        ee[0] = e;
-        if (sockp[0] != null && sockp[0].isConnected()) {
-          try {
-            sockp[0].close();
-          } catch (Exception eee) {
-          }
+    Thread tmp = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            sockp[0] = null;
+            try {
+                sockp[0] = new Socket(_host, _port);
+            } catch (Exception e) {
+                ee[0] = e;
+                if (sockp[0] != null && sockp[0].isConnected()) {
+                    try {
+                        sockp[0].close();
+                    } catch (Exception eee) {
+                        // Handle the exception
+                    }
+                }
+                sockp[0] = null;
+            }
         }
-        sockp[0] = null;
-      }
     });
     tmp.setName("Opening Socket " + host);
     tmp.start();
@@ -427,7 +430,7 @@ class Util {
   }
 
   static byte[] str2byte(String str) {
-    return str2byte(str, StandardCharsets.UTF_8);
+    return str2byte(str, Charset.forName("UTF-8"));
   }
 
   static String byte2str(byte[] str, Charset encoding) {
@@ -439,11 +442,11 @@ class Util {
   }
 
   static String byte2str(byte[] str) {
-    return byte2str(str, 0, str.length, StandardCharsets.UTF_8);
+    return byte2str(str, 0, str.length, Charset.forName("UTF-8"));
   }
 
   static String byte2str(byte[] str, int s, int l) {
-    return byte2str(str, s, l, StandardCharsets.UTF_8);
+    return byte2str(str, s, l, Charset.forName("UTF-8"));
   }
 
   static String toHex(byte[] str) {
@@ -513,16 +516,26 @@ class Util {
   static byte[] fromFile(String _file) throws IOException {
     _file = checkTilde(_file);
     File file = new File(_file);
-    try (InputStream fis = new FileInputStream(_file)) {
-      byte[] result = new byte[(int) (file.length())];
-      int len = 0;
-      while (true) {
-        int i = fis.read(result, len, result.length - len);
-        if (i <= 0)
-          break;
-        len += i;
-      }
-      return result;
+    InputStream fis = null;
+    try {
+        fis = new FileInputStream(_file);
+        byte[] result = new byte[(int) (file.length())];
+        int len = 0;
+        while (true) {
+          int i = fis.read(result, len, result.length - len);
+          if (i <= 0)
+            break;
+          len += i;
+        }
+        return result;
+    } finally {
+        if (fis != null) {
+            try {
+                fis.close();
+            } catch (IOException e) {
+                // Handle the exception
+            }
+        }
     }
   }
 

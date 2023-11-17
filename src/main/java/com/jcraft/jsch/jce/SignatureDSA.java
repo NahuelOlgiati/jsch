@@ -27,7 +27,7 @@
 package com.jcraft.jsch.jce;
 
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.security.*;
 import java.security.spec.*;
 import com.jcraft.jsch.Buffer;
@@ -107,7 +107,7 @@ public class SignatureDSA implements com.jcraft.jsch.SignatureDSA {
     byte[] tmp;
     Buffer buf = new Buffer(sig);
 
-    if (new String(buf.getString(), StandardCharsets.UTF_8).equals("ssh-dss")) {
+    if (new String(buf.getString(), Charset.forName("UTF-8")).equals("ssh-dss")) {
       j = buf.getInt();
       i = buf.getOffSet();
       tmp = new byte[j];

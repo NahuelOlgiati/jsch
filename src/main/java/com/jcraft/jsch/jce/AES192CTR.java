@@ -29,7 +29,7 @@ package com.jcraft.jsch.jce;
 import com.jcraft.jsch.Cipher;
 import javax.crypto.spec.*;
 
-public class AES192CTR implements Cipher {
+public class AES192CTR extends Cipher {
   private static final int ivsize = 16;
   private static final int bsize = 24;
   private javax.crypto.Cipher cipher;

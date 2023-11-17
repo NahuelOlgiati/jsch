@@ -30,7 +30,7 @@ import com.jcraft.jsch.Cipher;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 
-public class ARCFOUR128 implements Cipher {
+public class ARCFOUR128 extends Cipher {
   private static final int ivsize = 8;
   private static final int bsize = 16;
   private static final int skip = 1536;

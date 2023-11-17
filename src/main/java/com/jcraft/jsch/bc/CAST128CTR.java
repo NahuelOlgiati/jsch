@@ -33,7 +33,7 @@ import org.bouncycastle.crypto.modes.SICBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
-public class CAST128CTR implements Cipher {
+public class CAST128CTR extends Cipher {
   private static final int ivsize = 8;
   private static final int bsize = 16;
   private CTRModeCipher cipher;

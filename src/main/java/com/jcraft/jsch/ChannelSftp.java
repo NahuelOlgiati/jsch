@@ -28,7 +28,6 @@ package com.jcraft.jsch;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -154,7 +153,7 @@ public class ChannelSftp extends ChannelSession {
   private String home;
   private String lcwd;
 
-  private Charset fEncoding = StandardCharsets.UTF_8;
+  private Charset fEncoding = Charset.forName("UTF-8");
   private boolean fEncoding_is_utf8 = true;
 
   private RequestQueue rq = new RequestQueue(16);
@@ -238,7 +237,7 @@ public class ChannelSftp extends ChannelSession {
       type = header.type; // 2 -> SSH_FXP_VERSION
       server_version = header.rid;
       // System.err.println("SFTP protocol server-version="+server_version);
-      extensions = new Hashtable<>();
+      extensions = new Hashtable<String, String>();
       if (length > 0) {
         // extension data
         fill(buf, length);
@@ -432,8 +431,18 @@ public class ChannelSftp extends ChannelSession {
             monitor.count(size_of_dst);
           }
         }
-        try (InputStream fis = new FileInputStream(_src)) {
-          _put(fis, _dst, monitor, mode);
+        InputStream fis = null;
+        try {
+            fis = new FileInputStream(_src);
+            _put(fis, _dst, monitor, mode);
+        } finally {
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    // Handle the exception
+                }
+            }
         }
       }
     } catch (Exception e) {
@@ -926,11 +935,23 @@ public class ChannelSftp extends ChannelSession {
         }
 
         _dstExist = _dstFile.exists();
-        try (OutputStream fos = mode == OVERWRITE ? new FileOutputStream(_dst)
-            : new FileOutputStream(_dst, true) /* append */) {
-          // System.err.println("_get: "+_src+", "+_dst);
-          _get(_src, fos, monitor, mode, new File(_dst).length());
-        }
+		  OutputStream fos = null;
+		  try {
+			    if (mode == OVERWRITE) {
+			        fos = new FileOutputStream(_dst);
+			    } else {
+			        fos = new FileOutputStream(_dst, true); // append
+			    }
+			    _get(_src, fos, monitor, mode, new File(_dst).length());
+		  } finally {
+		      if (fos != null) {
+		          try {
+		              fos.close();
+		          } catch (IOException e) {
+		              // Handle the exception
+		          }
+		      }
+		  }
       }
     } catch (Exception e) {
       if (!_dstExist && _dst != null) {
@@ -1511,7 +1532,7 @@ public class ChannelSftp extends ChannelSession {
   }
 
   public Vector<LsEntry> ls(String path) throws SftpException {
-    final Vector<LsEntry> v = new Vector<>();
+    final Vector<LsEntry> v = new Vector<LsEntry>();
     LsEntrySelector selector = new LsEntrySelector() {
       @Override
       public int select(LsEntry entry) {
@@ -1538,7 +1559,7 @@ public class ChannelSftp extends ChannelSession {
 
       path = remoteAbsolutePath(path);
       byte[] pattern = null;
-      Vector<LsEntry> v = new Vector<>();
+      Vector<LsEntry> v = new Vector<LsEntry>();
 
       int foo = path.lastIndexOf('/');
       String dir = path.substring(0, ((foo == 0) ? 1 : foo));
@@ -1655,7 +1676,7 @@ public class ChannelSftp extends ChannelSession {
             byte[] _filename = filename;
             if (!fEncoding_is_utf8) {
               f = Util.byte2str(_filename, fEncoding);
-              _filename = Util.str2byte(f, StandardCharsets.UTF_8);
+              _filename = Util.str2byte(f, Charset.forName("UTF-8"));
             }
             find = Util.glob(pattern, _filename);
           }
@@ -2611,7 +2632,7 @@ public class ChannelSftp extends ChannelSession {
   }
 
   private Vector<String> glob_remote(String _path) throws Exception {
-    Vector<String> v = new Vector<>();
+    Vector<String> v = new Vector<String>();
     int i = 0;
 
     int foo = _path.lastIndexOf('/');
@@ -2706,7 +2727,7 @@ public class ChannelSftp extends ChannelSession {
 
         if (!fEncoding_is_utf8) {
           f = Util.byte2str(filename, fEncoding);
-          _filename = Util.str2byte(f, StandardCharsets.UTF_8);
+          _filename = Util.str2byte(f, Charset.forName("UTF-8"));
         }
         found = Util.glob(pattern, _filename);
 
@@ -2745,8 +2766,8 @@ public class ChannelSftp extends ChannelSession {
 
   private Vector<String> glob_local(String _path) throws Exception {
     // System.err.println("glob_local: "+_path);
-    Vector<String> v = new Vector<>();
-    byte[] path = Util.str2byte(_path, StandardCharsets.UTF_8);
+    Vector<String> v = new Vector<String>();
+    byte[] path = Util.str2byte(_path, Charset.forName("UTF-8"));
     int i = path.length - 1;
     while (i >= 0) {
       if (path[i] != '*' && path[i] != '?') {
@@ -2795,11 +2816,11 @@ public class ChannelSftp extends ChannelSession {
 
     // System.err.println("dir: "+new String(dir)+" pattern: "+new String(pattern));
     try {
-      String[] children = (new File(Util.byte2str(dir, StandardCharsets.UTF_8))).list();
+      String[] children = (new File(Util.byte2str(dir, Charset.forName("UTF-8")))).list();
       String pdir = Util.byte2str(dir) + file_separator;
       for (int j = 0; j < children.length; j++) {
         // System.err.println("children: "+children[j]);
-        if (Util.glob(pattern, Util.str2byte(children[j], StandardCharsets.UTF_8))) {
+        if (Util.glob(pattern, Util.str2byte(children[j], Charset.forName("UTF-8")))) {
           v.addElement(pdir + children[j]);
         }
       }
@@ -2813,7 +2834,7 @@ public class ChannelSftp extends ChannelSession {
         buf.getLength() >= 4) { // SSH_FXP_STATUS packet.
       byte[] str = buf.getString();
       // byte[] tag=buf.getString();
-      throw new SftpException(i, Util.byte2str(str, StandardCharsets.UTF_8));
+      throw new SftpException(i, Util.byte2str(str, Charset.forName("UTF-8")));
     } else {
       throw new SftpException(i, "Failure");
     }
@@ -2829,7 +2850,7 @@ public class ChannelSftp extends ChannelSession {
   }
 
   private boolean isPattern(String path, byte[][] utf8) {
-    byte[] _path = Util.str2byte(path, StandardCharsets.UTF_8);
+    byte[] _path = Util.str2byte(path, Charset.forName("UTF-8"));
     if (utf8 != null)
       utf8[0] = _path;
     return isPattern(_path);
@@ -2936,7 +2957,7 @@ public class ChannelSftp extends ChannelSession {
 
   public void setFilenameEncoding(Charset encoding) {
     fEncoding = encoding;
-    fEncoding_is_utf8 = fEncoding.equals(StandardCharsets.UTF_8);
+    fEncoding_is_utf8 = fEncoding.equals(Charset.forName("UTF-8"));
   }
 
   public String getExtension(String key) {

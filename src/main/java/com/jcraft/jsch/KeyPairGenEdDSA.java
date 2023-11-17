@@ -26,14 +26,14 @@
 
 package com.jcraft.jsch;
 
-public interface KeyPairGenEdDSA {
-  void init(String name, int keylen) throws Exception;
+public abstract class KeyPairGenEdDSA {
+	public abstract void init(String name, int keylen) throws Exception;
 
-  byte[] getPub();
+	public abstract byte[] getPub();
 
-  byte[] getPrv();
+	public abstract byte[] getPrv();
 
-  default void init(String name, byte[] prv) throws Exception {
-    throw new UnsupportedOperationException();
-  }
+	public void init(String name, byte[] prv) throws Exception {
+      throw new UnsupportedOperationException();
+    }
 }

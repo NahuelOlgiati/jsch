@@ -30,7 +30,7 @@
 
 package com.jcraft.jsch.jzlib;
 
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 
 /**
@@ -86,23 +86,23 @@ final class GZIPHeader implements Cloneable {
   }
 
   void setName(String name) {
-    this.name = name.getBytes(StandardCharsets.ISO_8859_1);
+    this.name = name.getBytes(Charset.forName("ISO-8859-1"));
   }
 
   String getName() {
     if (name == null)
       return "";
-    return new String(name, StandardCharsets.ISO_8859_1);
+    return new String(name, Charset.forName("ISO-8859-1"));
   }
 
   void setComment(String comment) {
-    this.comment = comment.getBytes(StandardCharsets.ISO_8859_1);
+    this.comment = comment.getBytes(Charset.forName("ISO-8859-1"));
   }
 
   String getComment() {
     if (comment == null)
       return "";
-    return new String(comment, StandardCharsets.ISO_8859_1);
+    return new String(comment, Charset.forName("ISO-8859-1"));
   }
 
   void setCRC(long crc) {

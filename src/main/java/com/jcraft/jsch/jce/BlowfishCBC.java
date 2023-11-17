@@ -29,7 +29,7 @@ package com.jcraft.jsch.jce;
 import com.jcraft.jsch.Cipher;
 import javax.crypto.spec.*;
 
-public class BlowfishCBC implements Cipher {
+public class BlowfishCBC extends Cipher {
   private static final int ivsize = 8;
   private static final int bsize = 16;
   private javax.crypto.Cipher cipher;

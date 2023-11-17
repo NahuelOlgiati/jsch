@@ -34,7 +34,7 @@ import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
-public class CAST128CBC implements Cipher {
+public class CAST128CBC extends Cipher {
   private static final int ivsize = 8;
   private static final int bsize = 16;
   private BufferedBlockCipher cipher;

@@ -41,7 +41,7 @@ public abstract class Channel {
   static final int SSH_OPEN_RESOURCE_SHORTAGE = 4;
 
   static int index = 0;
-  private static Vector<Channel> pool = new Vector<>();
+  private static Vector<Channel> pool = new Vector<Channel>();
 
   static Channel getChannel(String type, Session session) {
     Channel ret = null;

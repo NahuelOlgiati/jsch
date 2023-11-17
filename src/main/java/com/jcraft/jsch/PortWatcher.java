@@ -35,7 +35,7 @@ import java.net.UnknownHostException;
 import java.util.Vector;
 
 class PortWatcher {
-  private static Vector<PortWatcher> pool = new Vector<>();
+  private static Vector<PortWatcher> pool = new Vector<PortWatcher>();
   private static InetAddress anyLocalAddress = null;
   static {
     // 0.0.0.0
@@ -80,13 +80,14 @@ class PortWatcher {
     }
     if (lport == 0) {
       int assigned = ss.getLocalPort();
-      if (assigned != -1)
-        this.lport = assigned;
+      if (assigned != -1) {
+    	  this.lport = assigned;  
+      }
     }
   }
 
   static String[] getPortForwarding(Session session) {
-    Vector<String> foo = new Vector<>();
+    Vector<String> foo = new Vector<String>();
     synchronized (pool) {
       for (int i = 0; i < pool.size(); i++) {
         PortWatcher p = pool.elementAt(i);
@@ -196,7 +197,11 @@ class PortWatcher {
   }
 
   void run() {
-    thread = this::run;
+    thread = new Runnable() {
+        public void run() {
+            PortWatcher.this.run();
+        }
+    };
     try {
       while (thread != null) {
         Socket socket = ss.accept();

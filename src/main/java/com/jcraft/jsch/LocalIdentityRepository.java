@@ -31,7 +31,7 @@ import java.util.Vector;
 class LocalIdentityRepository implements IdentityRepository {
   private static final String name = "Local Identity Repository";
 
-  private Vector<Identity> identities = new Vector<>();
+  private Vector<Identity> identities = new Vector<Identity>();
   private JSch.InstanceLogger instLogger;
 
   LocalIdentityRepository(JSch.InstanceLogger instLogger) {
@@ -51,7 +51,7 @@ class LocalIdentityRepository implements IdentityRepository {
   @Override
   public synchronized Vector<Identity> getIdentities() {
     removeDupulicates();
-    Vector<Identity> v = new Vector<>();
+    Vector<Identity> v = new Vector<Identity>();
     for (int i = 0; i < identities.size(); i++) {
       v.addElement(identities.elementAt(i));
     }
@@ -125,7 +125,7 @@ class LocalIdentityRepository implements IdentityRepository {
   }
 
   private void removeDupulicates() {
-    Vector<byte[]> v = new Vector<>();
+    Vector<byte[]> v = new Vector<byte[]>();
     int len = identities.size();
     if (len == 0)
       return;

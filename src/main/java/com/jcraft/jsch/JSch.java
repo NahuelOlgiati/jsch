@@ -37,7 +37,7 @@ public class JSch {
    */
   public static final String VERSION = Version.getVersion();
 
-  static Hashtable<String, String> config = new Hashtable<>();
+  static Hashtable<String, String> config = new Hashtable<String, String>();
   static {
     config.put("kex", Util.getSystemProperty("jsch.kex",
         "curve25519-sha256,curve25519-sha256@libssh.org,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,diffie-hellman-group-exchange-sha256,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group14-sha256"));
@@ -48,9 +48,9 @@ public class JSch {
     config.put("enable_server_sig_algs",
         Util.getSystemProperty("jsch.enable_server_sig_algs", "yes"));
     config.put("cipher.s2c", Util.getSystemProperty("jsch.cipher",
-        "aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com"));
+        "aes128-ctr,aes192-ctr,aes256-ctr"));
     config.put("cipher.c2s", Util.getSystemProperty("jsch.cipher",
-        "aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com"));
+        "aes128-ctr,aes192-ctr,aes256-ctr"));
     config.put("mac.s2c", Util.getSystemProperty("jsch.mac",
         "hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha1-etm@openssh.com,hmac-sha2-256,hmac-sha2-512,hmac-sha1"));
     config.put("mac.c2s", Util.getSystemProperty("jsch.mac",
@@ -150,9 +150,6 @@ public class JSch {
 
     config.put("none", "com.jcraft.jsch.CipherNone");
 
-    config.put("aes128-gcm@openssh.com", "com.jcraft.jsch.jce.AES128GCM");
-    config.put("aes256-gcm@openssh.com", "com.jcraft.jsch.jce.AES256GCM");
-
     config.put("aes128-cbc", "com.jcraft.jsch.jce.AES128CBC");
     config.put("aes192-cbc", "com.jcraft.jsch.jce.AES192CBC");
     config.put("aes256-cbc", "com.jcraft.jsch.jce.AES256CBC");
@@ -244,7 +241,7 @@ public class JSch {
 
   final InstanceLogger instLogger = new InstanceLogger();
 
-  private Vector<Session> sessionPool = new Vector<>();
+  private Vector<Session> sessionPool = new Vector<Session>();
 
   private IdentityRepository defaultIdentityRepository = new LocalIdentityRepository(instLogger);
 
@@ -587,7 +584,7 @@ public class JSch {
    * @throws JSchException if identityReposory has problems.
    */
   public Vector<String> getIdentityNames() throws JSchException {
-    Vector<String> foo = new Vector<>();
+    Vector<String> foo = new Vector<String>();
     Vector<Identity> identities = identityRepository.getIdentities();
     for (int i = 0; i < identities.size(); i++) {
       Identity identity = identities.elementAt(i);

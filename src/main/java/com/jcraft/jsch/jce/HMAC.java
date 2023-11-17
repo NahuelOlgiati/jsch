@@ -32,7 +32,7 @@ import com.jcraft.jsch.MAC;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 
-abstract class HMAC implements MAC {
+abstract class HMAC extends MAC {
   protected String name;
   protected int bsize;
   protected String algorithm;

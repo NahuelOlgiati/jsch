@@ -26,7 +26,7 @@
 
 package com.jcraft.jsch.jce;
 
-public class KeyPairGenEdDSA implements com.jcraft.jsch.KeyPairGenEdDSA {
+public class KeyPairGenEdDSA extends com.jcraft.jsch.KeyPairGenEdDSA {
 
   public KeyPairGenEdDSA() {
     throw new UnsupportedOperationException("KeyPairGenEdDSA requires Java15+.");

@@ -30,7 +30,7 @@ import com.jcraft.jsch.HASH;
 
 import java.security.*;
 
-public class SHA1 implements HASH {
+public class SHA1 extends HASH {
   MessageDigest md;
 
   @Override

@@ -26,20 +26,20 @@
 
 package com.jcraft.jsch;
 
-public interface MAC {
-  String getName();
+public abstract class MAC {
+	public abstract String getName();
 
-  int getBlockSize();
+	public abstract int getBlockSize();
 
-  void init(byte[] key) throws Exception;
+	public abstract void init(byte[] key) throws Exception;
 
-  void update(byte[] foo, int start, int len);
+	public abstract void update(byte[] foo, int start, int len);
 
-  void update(int foo);
+	public abstract void update(int foo);
 
-  void doFinal(byte[] buf, int offset);
+	public abstract void doFinal(byte[] buf, int offset);
 
-  default boolean isEtM() {
-    return false;
-  }
+	public boolean isEtM() {
+      return false;
+    }
 }

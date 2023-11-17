@@ -81,7 +81,7 @@ class AgentProxy {
   }
 
   synchronized Vector<Identity> getIdentities() {
-    Vector<Identity> identities = new Vector<>();
+    Vector<Identity> identities = new Vector<Identity>();
 
     int required_size = 1 + 4;
     buffer.reset();

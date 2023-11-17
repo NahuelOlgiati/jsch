@@ -50,7 +50,11 @@ public class ChannelShell extends ChannelSession {
     }
 
     if (io.in != null) {
-      thread = new Thread(this::run);
+      thread = new Thread(new Runnable() {
+    	    public void run() {
+    	        ChannelShell.this.run();
+    	    }
+    	});
       thread.setName("Shell for " + _session.host);
       if (_session.daemon_thread) {
         thread.setDaemon(_session.daemon_thread);

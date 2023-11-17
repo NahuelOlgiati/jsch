@@ -34,7 +34,7 @@ import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
-public class SEEDCBC implements Cipher {
+public class SEEDCBC extends Cipher {
   private static final int ivsize = 16;
   private static final int bsize = 16;
   private BufferedBlockCipher cipher;

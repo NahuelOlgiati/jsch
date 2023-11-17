@@ -48,7 +48,7 @@ class KnownHosts implements HostKeyRepository {
     super();
     this.jsch = jsch;
     getHMACSHA1();
-    pool = new Vector<>();
+    pool = new Vector<HostKey>();
   }
 
   void setKnownHosts(String filename) throws JSchException {
@@ -67,7 +67,9 @@ class KnownHosts implements HostKeyRepository {
     byte i;
     int j;
     boolean error = false;
-    try (InputStream fis = input) {
+    InputStream fis = null;
+    try {
+      fis = input; 
       String host;
       String key = null;
       int type;
@@ -264,6 +266,14 @@ class KnownHosts implements HostKeyRepository {
       if (e instanceof JSchException)
         throw (JSchException) e;
       throw new JSchException(e.toString(), e);
+    } finally {
+        if (fis != null) {
+            try {
+                fis.close();
+            } catch (IOException e) {
+                // Handle the exception
+            }
+        }
     }
   }
 
@@ -391,7 +401,7 @@ class KnownHosts implements HostKeyRepository {
   @Override
   public HostKey[] getHostKey(String host, String type) {
     synchronized (pool) {
-      List<HostKey> v = new ArrayList<>();
+      List<HostKey> v = new ArrayList<HostKey>();
       for (int i = 0; i < pool.size(); i++) {
         HostKey hk = pool.elementAt(i);
         if (hk.type == HostKey.UNKNOWN)
@@ -458,8 +468,20 @@ class KnownHosts implements HostKeyRepository {
   synchronized void sync(String foo) throws IOException {
     if (foo == null)
       return;
-    try (FileOutputStream fos = new FileOutputStream(Util.checkTilde(foo))) {
-      dump(fos);
+    FileOutputStream fos = null;
+    try {
+        fos = new FileOutputStream(Util.checkTilde(foo));
+        dump(fos);
+    } catch (IOException e) {
+        // Handle the exception
+    } finally {
+        if (fos != null) {
+            try {
+                fos.close();
+            } catch (IOException e) {
+                // Handle the exception
+            }
+        }
     }
   }
 

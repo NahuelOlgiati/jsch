@@ -26,7 +26,7 @@
 
 package com.jcraft.jsch;
 
-class CipherNone implements Cipher {
+class CipherNone extends Cipher {
   private static final int ivsize = 8;
   private static final int bsize = 16;
 

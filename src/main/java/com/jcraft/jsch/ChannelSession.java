@@ -108,7 +108,7 @@ class ChannelSession extends Channel {
 
   private Hashtable<byte[], byte[]> getEnv() {
     if (env == null)
-      env = new Hashtable<>();
+      env = new Hashtable<byte[], byte[]>();
     return env;
   }
 

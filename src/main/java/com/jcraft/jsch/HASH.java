@@ -26,16 +26,16 @@
 
 package com.jcraft.jsch;
 
-public interface HASH {
-  void init() throws Exception;
+public abstract class HASH {
+	public abstract void init() throws Exception;
 
-  int getBlockSize();
+	public abstract int getBlockSize();
 
-  void update(byte[] foo, int start, int len) throws Exception;
+	public abstract void update(byte[] foo, int start, int len) throws Exception;
 
-  byte[] digest() throws Exception;
+	public abstract byte[] digest() throws Exception;
 
-  default String name() {
-    return "";
-  }
+	public String name() {
+	  return "";
+	}
 }

@@ -1,7 +1,6 @@
 package com.jcraft.jsch.juz;
 
 import com.jcraft.jsch.*;
-import java.util.function.Supplier;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
@@ -19,7 +18,7 @@ import java.util.zip.Inflater;
  * [1] http://www.jcraft.com/jzlib/ [2] http://www.zlib.net/ [3]
  * https://bugs.openjdk.java.net/browse/JDK-4206909
  */
-public class Compression implements com.jcraft.jsch.Compression {
+public class Compression extends com.jcraft.jsch.Compression {
   static private final int BUF_SIZE = 4096;
   private final int buffer_margin = 32 + 20; // AES256 + HMACSHA1
   private Deflater deflater;
@@ -30,12 +29,12 @@ public class Compression implements com.jcraft.jsch.Compression {
 
   public Compression() {}
 
-  private void logMessage(int level, Supplier<String> message) {
+  private void logMessage(int level, LogMessageProvider messageProvider) {
     Logger logger = session == null ? JSch.getLogger() : session.getLogger();
     if (!logger.isEnabled(level)) {
       return;
     }
-    logger.log(level, message.get());
+    logger.log(level, messageProvider.get());
   }
 
   @Override
@@ -66,7 +65,12 @@ public class Compression implements com.jcraft.jsch.Compression {
       inflater = new Inflater();
       inflated_buf = new byte[BUF_SIZE];
     }
-    logMessage(Logger.DEBUG, () -> "zlib using " + this.getClass().getCanonicalName());
+    logMessage(Logger.DEBUG, new LogMessageProvider() {
+        @Override
+        public String get() {
+            return "zlib using " + getClass().getCanonicalName();
+        }
+    });
   }
 
   @Override
@@ -84,7 +88,7 @@ public class Compression implements com.jcraft.jsch.Compression {
     byte[] obuf = buf; // output buffer
     int obuflen = start; // length of output buffer
     do {
-      int result = deflater.deflate(tmpbuf, 0, tmpbuf.length, Deflater.SYNC_FLUSH);
+      int result = deflater.deflate(tmpbuf, 0, tmpbuf.length);
       // deflation of delfated data may inflate it.
       if (obuf.length < obuflen + result + buffer_margin) {
         byte[] tmp = new byte[(obuflen + result + buffer_margin) * 2];
@@ -115,8 +119,13 @@ public class Compression implements com.jcraft.jsch.Compression {
         System.arraycopy(tmpbuf, 0, inflated_buf, inflated_end, result);
         inflated_end += result;
       } while (inflater.getRemaining() > 0);
-    } catch (java.util.zip.DataFormatException e) {
-      logMessage(Logger.WARN, () -> "an exception during uncompress\n" + e.toString());
+    } catch (final java.util.zip.DataFormatException e) {
+    	logMessage(Logger.WARN, new LogMessageProvider() {
+    	    @Override
+    	    public String get() {
+    	        return "an exception during uncompress\n" + e.toString();
+    	    }
+    	});
     }
 
     if (buf.length < inflated_buf.length + start) {

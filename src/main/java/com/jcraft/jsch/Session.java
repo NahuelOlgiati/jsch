@@ -40,8 +40,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Vector;
 
-import javax.crypto.AEADBadTagException;
-
 public class Session {
 
   // http://ietf.org/internet-drafts/draft-ietf-secsh-assignednumbers-01.txt
@@ -509,7 +507,11 @@ public class Session {
 
       synchronized (lock) {
         if (isConnected) {
-          connectThread = new Thread(this::run);
+          connectThread = new Thread(new Runnable() {
+        	    public void run() {
+        	        Session.this.run();
+        	    }
+        	});
           connectThread.setName("Connect thread " + host + " session");
           if (daemon_thread) {
             connectThread.setDaemon(daemon_thread);
@@ -586,9 +588,11 @@ public class Session {
       Class<? extends KeyExchange> c = Class
           .forName(getConfig(guess[KeyExchange.PROPOSAL_KEX_ALGS])).asSubclass(KeyExchange.class);
       kex = c.getDeclaredConstructor().newInstance();
-    } catch (Exception | NoClassDefFoundError e) {
+    } catch (NoClassDefFoundError e) {
       throw new JSchException(e.toString(), e);
-    }
+    } catch (Exception e) {
+        throw new JSchException(e.toString(), e);
+      }
 
     kex.doInit(this, V_S, V_C, I_S, I_C);
     return kex;
@@ -720,8 +724,8 @@ public class Session {
       }
       HostKey[] hks = hkr.getHostKey(chost, null);
       if (hks != null && hks.length > 0) {
-        List<String> pref_shks = new ArrayList<>();
-        List<String> shks = new ArrayList<>(Arrays.asList(Util.split(server_host_key, ",")));
+        List<String> pref_shks = new ArrayList<String>();
+        List<String> shks = new ArrayList<String>(Arrays.asList(Util.split(server_host_key, ",")));
         Iterator<String> it = shks.iterator();
         while (it.hasNext()) {
           String algo = it.next();
@@ -741,7 +745,14 @@ public class Session {
         }
         if (pref_shks.size() > 0) {
           pref_shks.addAll(shks);
-          server_host_key = String.join(",", pref_shks);
+          StringBuilder server_host_keyBuilder = new StringBuilder();
+          for (String element : pref_shks) {
+              if (server_host_keyBuilder.length() > 0) {
+                  server_host_keyBuilder.append(",");
+              }
+              server_host_keyBuilder.append(element);
+          }
+          server_host_key = server_host_keyBuilder.toString();
         }
       }
 
@@ -1067,7 +1078,7 @@ public class Session {
         buf.index += (j);
         try {
           s2ccipher.doFinal(buf.buffer, 0, j + 4, buf.buffer, 0);
-        } catch (AEADBadTagException e) {
+        } catch (Exception e) {
           throw new JSchException("Packet corrupt", e);
         }
         // overwrite encrypted packet length field with decrypted version
@@ -1105,7 +1116,7 @@ public class Session {
           try {
             s2ccipher.updateAAD(buf.buffer, 0, 4);
             s2ccipher.doFinal(buf.buffer, 4, j, buf.buffer, 4);
-          } catch (AEADBadTagException e) {
+          } catch (Exception e) {
             throw new JSchException("Packet corrupt", e);
           }
           // don't include AEAD tag size in buf so that decompression works below
@@ -1340,9 +1351,6 @@ public class Session {
     }
 
     JSchException e = new JSchException("Packet corrupt");
-    if (ioe != null) {
-      e.addSuppressed(ioe);
-    }
     throw e;
   }
 
@@ -1468,12 +1476,15 @@ public class Session {
 
       method = guess[KeyExchange.PROPOSAL_COMP_ALGS_STOC];
       initInflater(method);
-    } catch (Exception | NoClassDefFoundError e) {
-      if (e instanceof JSchException)
-        throw e;
+    } catch (NoClassDefFoundError e) {
       throw new JSchException(e.toString(), e);
       // System.err.println("updatekeys: "+e);
-    }
+    } catch (Exception e) {
+        if (e instanceof JSchException)
+            throw e;
+          throw new JSchException(e.toString(), e);
+          // System.err.println("updatekeys: "+e);
+        }
   }
 
 
@@ -1632,7 +1643,11 @@ public class Session {
   Runnable thread;
 
   void run() {
-    thread = this::run;
+    thread = new Runnable() {
+        public void run() {
+            Session.this.run();
+        }
+    };
 
     byte[] foo;
     Buffer buf = new Buffer();
@@ -1867,12 +1882,17 @@ public class Session {
               buf.putString(Util.empty);
               write(packet);
             } else {
-              channel = Channel.getChannel(ctyp, this);
-              addChannel(channel);
-              channel.getData(buf);
-              channel.init();
-
-              Thread tmp = new Thread(channel::run);
+        	  channel = Channel.getChannel(ctyp, this);
+        	  addChannel(channel);
+        	  channel.getData(buf);
+        	  channel.init();
+        	  final Channel finalChannel = channel;
+        	  Thread tmp = new Thread(new Runnable() {
+        	      @Override
+        	      public void run() {
+        	    	  finalChannel.run();
+        	      }
+        	  });
               tmp.setName("Channel " + ctyp + " " + host);
               if (daemon_thread) {
                 tmp.setDaemon(daemon_thread);
@@ -2093,7 +2113,13 @@ public class Session {
       ServerSocketFactory ssf, int connectTimeout) throws JSchException {
     PortWatcher pw = PortWatcher.addPort(this, bind_address, lport, host, rport, ssf);
     pw.setConnectTimeout(connectTimeout);
-    Thread tmp = new Thread(pw::run);
+    final PortWatcher finalPw = pw;
+    Thread tmp = new Thread(new Runnable() {
+        @Override
+        public void run() {
+        	finalPw.run();
+        }
+    });
     tmp.setName("PortWatcher Thread for " + host);
     if (daemon_thread) {
       tmp.setDaemon(daemon_thread);
@@ -2106,7 +2132,13 @@ public class Session {
       ServerSocketFactory ssf, int connectTimeout) throws JSchException {
     PortWatcher pw = PortWatcher.addSocket(this, bindAddress, lport, socketPath, ssf);
     pw.setConnectTimeout(connectTimeout);
-    Thread tmp = new Thread(pw::run);
+    final PortWatcher finalPw = pw;
+    Thread tmp = new Thread(new Runnable() {
+        @Override
+        public void run() {
+        	finalPw.run();
+        }
+    });
     tmp.setName("PortWatcher Thread for " + host);
     if (daemon_thread) {
       tmp.setDaemon(daemon_thread);
@@ -2289,7 +2321,7 @@ public class Session {
   Forwarding parseForwarding(String conf) throws JSchException {
     String[] tmp = conf.split(" ");
     if (tmp.length > 1) { // "[bind_address:]port host:hostport"
-      Vector<String> foo = new Vector<>();
+      Vector<String> foo = new Vector<String>();
       for (int i = 0; i < tmp.length; i++) {
         if (tmp[i].length() == 0)
           continue;
@@ -2615,7 +2647,7 @@ public class Session {
   }
 
   public void setConfig(Properties newconf) {
-    Hashtable<String, String> foo = new Hashtable<>();
+    Hashtable<String, String> foo = new Hashtable<String, String>();
     for (String key : newconf.stringPropertyNames()) {
       foo.put(key, newconf.getProperty(key));
     }
@@ -2625,7 +2657,7 @@ public class Session {
   public void setConfig(Hashtable<String, String> newconf) {
     synchronized (lock) {
       if (config == null)
-        config = new Hashtable<>();
+        config = new Hashtable<String, String>();
       for (Enumeration<String> e = newconf.keys(); e.hasMoreElements();) {
         String newkey = e.nextElement();
         String key =
@@ -2642,7 +2674,7 @@ public class Session {
   public void setConfig(String key, String value) {
     synchronized (lock) {
       if (config == null) {
-        config = new Hashtable<>();
+        config = new Hashtable<String, String>();
       }
       if (key.equals("PubkeyAcceptedKeyTypes")) {
         config.put("PubkeyAcceptedAlgorithms", value);
@@ -2826,7 +2858,7 @@ public class Session {
     String cipherc2s = getConfig("cipher.c2s");
     String ciphers2c = getConfig("cipher.s2c");
 
-    Vector<String> result = new Vector<>();
+    Vector<String> result = new Vector<String>();
     String[] _ciphers = Util.split(ciphers, ",");
     for (int i = 0; i < _ciphers.length; i++) {
       String cipher = _ciphers[i];
@@ -2856,9 +2888,12 @@ public class Session {
       Cipher _c = c.getDeclaredConstructor().newInstance();
       _c.init(Cipher.ENCRYPT_MODE, new byte[_c.getBlockSize()], new byte[_c.getIVSize()]);
       return true;
-    } catch (Exception | NoClassDefFoundError e) {
+    } catch (NoClassDefFoundError e) {
       return false;
     }
+    catch (Exception e) {
+        return false;
+      }
   }
 
   private String[] checkMacs(String macs) {
@@ -2872,7 +2907,7 @@ public class Session {
     String macc2s = getConfig("mac.c2s");
     String macs2c = getConfig("mac.s2c");
 
-    Vector<String> result = new Vector<>();
+    Vector<String> result = new Vector<String>();
     String[] _macs = Util.split(macs, ",");
     for (int i = 0; i < _macs.length; i++) {
       String mac = _macs[i];
@@ -2902,9 +2937,11 @@ public class Session {
       MAC _c = c.getDeclaredConstructor().newInstance();
       _c.init(new byte[_c.getBlockSize()]);
       return true;
-    } catch (Exception | NoClassDefFoundError e) {
+    } catch (NoClassDefFoundError e) {
       return false;
-    }
+    } catch (Exception e) {
+        return false;
+      }
   }
 
   private String[] checkKexes(String kexes) {
@@ -2915,7 +2952,7 @@ public class Session {
       getLogger().log(Logger.INFO, "CheckKexes: " + kexes);
     }
 
-    Vector<String> result = new Vector<>();
+    Vector<String> result = new Vector<String>();
     String[] _kexes = Util.split(kexes, ",");
     for (int i = 0; i < _kexes.length; i++) {
       if (!checkKex(this, getConfig(_kexes[i]))) {
@@ -2942,9 +2979,11 @@ public class Session {
       KeyExchange _c = c.getDeclaredConstructor().newInstance();
       _c.doInit(s, null, null, null, null);
       return true;
-    } catch (Exception | NoClassDefFoundError e) {
+    } catch (NoClassDefFoundError e) {
       return false;
-    }
+    } catch (Exception e) {
+        return false;
+      }
   }
 
   private String[] checkSignatures(String sigs) {
@@ -2955,7 +2994,7 @@ public class Session {
       getLogger().log(Logger.INFO, "CheckSignatures: " + sigs);
     }
 
-    Vector<String> result = new Vector<>();
+    Vector<String> result = new Vector<String>();
     String[] _sigs = Util.split(sigs, ",");
     for (int i = 0; i < _sigs.length; i++) {
       try {
@@ -2963,9 +3002,11 @@ public class Session {
             Class.forName(JSch.getConfig(_sigs[i])).asSubclass(Signature.class);
         final Signature sig = c.getDeclaredConstructor().newInstance();
         sig.init();
-      } catch (Exception | NoClassDefFoundError e) {
+      } catch (NoClassDefFoundError e) {
         result.addElement(_sigs[i]);
-      }
+      } catch (Exception e) {
+          result.addElement(_sigs[i]);
+        }
     }
     if (result.size() == 0)
       return null;

@@ -26,7 +26,7 @@
 
 package com.jcraft.jsch;
 
-class AgentIdentity implements Identity {
+class AgentIdentity extends Identity {
 
   private AgentProxy agent;
   private byte[] blob;
