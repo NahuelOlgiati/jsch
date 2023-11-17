@@ -42,7 +42,7 @@ public class JSch {
     config.put("kex", Util.getSystemProperty("jsch.kex",
         "curve25519-sha256,curve25519-sha256@libssh.org,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,diffie-hellman-group-exchange-sha256,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group14-sha256"));
     config.put("server_host_key", Util.getSystemProperty("jsch.server_host_key",
-        "ssh-ed25519,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,rsa-sha2-512,rsa-sha2-256"));
+        "ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,rsa-sha2-512,rsa-sha2-256"));
     config.put("prefer_known_host_key_types",
         Util.getSystemProperty("jsch.prefer_known_host_key_types", "yes"));
     config.put("enable_server_sig_algs",
@@ -155,18 +155,6 @@ public class JSch {
     config.put("aes256-cbc", "com.jcraft.jsch.jce.AES256CBC");
     config.put("rijndael-cbc@lysator.liu.se", "com.jcraft.jsch.jce.AES256CBC");
 
-    config.put("chacha20-poly1305@openssh.com", "com.jcraft.jsch.bc.ChaCha20Poly1305");
-    config.put("cast128-cbc", "com.jcraft.jsch.bc.CAST128CBC");
-    config.put("cast128-ctr", "com.jcraft.jsch.bc.CAST128CTR");
-    config.put("twofish128-cbc", "com.jcraft.jsch.bc.Twofish128CBC");
-    config.put("twofish192-cbc", "com.jcraft.jsch.bc.Twofish192CBC");
-    config.put("twofish256-cbc", "com.jcraft.jsch.bc.Twofish256CBC");
-    config.put("twofish-cbc", "com.jcraft.jsch.bc.Twofish256CBC");
-    config.put("twofish128-ctr", "com.jcraft.jsch.bc.Twofish128CTR");
-    config.put("twofish192-ctr", "com.jcraft.jsch.bc.Twofish192CTR");
-    config.put("twofish256-ctr", "com.jcraft.jsch.bc.Twofish256CTR");
-    config.put("seed-cbc@ssh.com", "com.jcraft.jsch.bc.SEEDCBC");
-
     config.put("aes128-ctr", "com.jcraft.jsch.jce.AES128CTR");
     config.put("aes192-ctr", "com.jcraft.jsch.jce.AES192CTR");
     config.put("aes256-ctr", "com.jcraft.jsch.jce.AES256CTR");
@@ -195,43 +183,22 @@ public class JSch {
     config.put("bcrypt", "com.jcraft.jsch.jbcrypt.JBCrypt");
     config.put("scrypt", "com.jcraft.jsch.bc.SCrypt");
 
-    if (JavaVersion.getVersion() >= 11) {
-      config.put("xdh", "com.jcraft.jsch.jce.XDH");
-    } else {
-      config.put("xdh", "com.jcraft.jsch.bc.XDH");
-    }
-
-    if (JavaVersion.getVersion() >= 15) {
-      config.put("keypairgen.eddsa", "com.jcraft.jsch.jce.KeyPairGenEdDSA");
-      config.put("ssh-ed25519", "com.jcraft.jsch.jce.SignatureEd25519");
-      config.put("ssh-ed448", "com.jcraft.jsch.jce.SignatureEd448");
-    } else {
-      config.put("keypairgen.eddsa", "com.jcraft.jsch.bc.KeyPairGenEdDSA");
-      config.put("ssh-ed25519", "com.jcraft.jsch.bc.SignatureEd25519");
-      config.put("ssh-ed448", "com.jcraft.jsch.bc.SignatureEd448");
-    }
-    config.put("keypairgen_fromprivate.eddsa", "com.jcraft.jsch.bc.KeyPairGenEdDSA");
-
     config.put("StrictHostKeyChecking", "ask");
     config.put("HashKnownHosts", "no");
 
     config.put("PreferredAuthentications", Util.getSystemProperty("jsch.preferred_authentications",
         "gssapi-with-mic,publickey,keyboard-interactive,password"));
     config.put("PubkeyAcceptedAlgorithms", Util.getSystemProperty("jsch.client_pubkey",
-        "ssh-ed25519,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,rsa-sha2-512,rsa-sha2-256"));
+        "ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,rsa-sha2-512,rsa-sha2-256"));
     config.put("enable_pubkey_auth_query",
         Util.getSystemProperty("jsch.enable_pubkey_auth_query", "yes"));
     config.put("try_additional_pubkey_algorithms",
         Util.getSystemProperty("jsch.try_additional_pubkey_algorithms", "yes"));
     config.put("enable_auth_none", Util.getSystemProperty("jsch.enable_auth_none", "yes"));
 
-    config.put("CheckCiphers",
-        Util.getSystemProperty("jsch.check_ciphers", "chacha20-poly1305@openssh.com"));
     config.put("CheckMacs", Util.getSystemProperty("jsch.check_macs", ""));
     config.put("CheckKexes", Util.getSystemProperty("jsch.check_kexes",
         "curve25519-sha256,curve25519-sha256@libssh.org,curve448-sha512"));
-    config.put("CheckSignatures",
-        Util.getSystemProperty("jsch.check_signatures", "ssh-ed25519,ssh-ed448"));
     config.put("FingerprintHash", Util.getSystemProperty("jsch.fingerprint_hash", "sha256"));
 
     config.put("MaxAuthTries", Util.getSystemProperty("jsch.max_auth_tries", "6"));

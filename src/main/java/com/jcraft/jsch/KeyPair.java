@@ -1357,49 +1357,6 @@ public abstract class KeyPair {
           } catch (Exception e) {
               throw new JSchException("'sha-1' is required, but it is not available.", e);
             }
-        } else {
-          String argonTypeStr = v.get("Key-Derivation");
-          String saltStr = v.get("Argon2-Salt");
-          if (argonTypeStr == null || saltStr == null
-              || (saltStr != null && saltStr.length() % 2 != 0)) {
-            throw new JSchException("Invalid argon2 params.");
-          }
-
-          int argonType;
-          if ("Argon2d".equals(argonTypeStr)) {
-              argonType = Argon2.ARGON2D;
-          } else if ("Argon2i".equals(argonTypeStr)) {
-              argonType = Argon2.ARGON2I;
-          } else if ("Argon2id".equals(argonTypeStr)) {
-              argonType = Argon2.ARGON2ID;
-          } else {
-              throw new JSchException("Invalid argon2 params.");
-          }
-
-          try {
-            int memory = Integer.parseInt(v.get("Argon2-Memory"));
-            int passes = Integer.parseInt(v.get("Argon2-Passes"));
-            int parallelism = Integer.parseInt(v.get("Argon2-Parallelism"));
-
-            byte[] salt = new byte[saltStr.length() / 2];
-            for (int i = 0; i < salt.length; i++) {
-              int j = i * 2;
-              salt[i] = (byte) Integer.parseInt(saltStr.substring(j, j + 2), 16);
-            }
-
-            Class<? extends Argon2> c =
-                Class.forName(JSch.getConfig("argon2")).asSubclass(Argon2.class);
-            Argon2 argon2 = c.getDeclaredConstructor().newInstance();
-            argon2.init(salt, passes, argonType, new byte[0], new byte[0], memory, parallelism,
-                Argon2.V13);
-            kpair.kdf = argon2;
-          } catch (NumberFormatException e) {
-            throw new JSchException("Invalid argon2 params.", e);
-          } catch (NoClassDefFoundError e) {
-            throw new JSchException("'argon2' is required, but it is not available.", e);
-          } catch (Exception e) {
-              throw new JSchException("'argon2' is required, but it is not available.", e);
-          }
         }
 
         kpair.data = prvkey;
